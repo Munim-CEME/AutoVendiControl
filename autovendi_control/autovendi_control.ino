@@ -46,8 +46,8 @@ const int in2 = 6;
   
 // Motor B connections //TODO: Change BTS7960 convention with sense of L or R motor
 const int enB = 10; 
-const int in3 = 7;
-const int in4 = 8;
+const int in3 = 9;
+const int in4 = 10;
  
 // How much the PWM value can change each cycle
 const int PWM_INCREMENT = 1;
@@ -56,21 +56,22 @@ const int PWM_INCREMENT = 1;
 const int TICKS_PER_REVOLUTION = 620;
  
 // Wheel radius in meters
-const double WHEEL_RADIUS = 0.033; //TODO: Measure Wheel Radius
+const double WHEEL_RADIUS = 0.15; //Done todo:  Measure Wheel Radius 15cm
  
 // Distance from center of the left tire to the center of the right tire in m
-const double WHEEL_BASE = 0.17; //TODO: Measure wheel base
+const double WHEEL_BASE = 0.558; //done todo: Measure wheel base
  
 // Number of ticks a wheel makes moving a linear distance of 1 meter
 // This value was measured manually.
-const double TICKS_PER_METER = 3100; // Originally 2880 //TODO: Change encoder tickss
- 
+const double TICKS_PER_METER_A = 387; // done today
+const double TICKS_PER_METER_B = 369;
+
 // Proportional constant, which was measured by measuring the 
 // PWM-Linear Velocity relationship for the robot.
-const int K_P = 278; //TODO: CHange to new value
+const int K_P = 836.5; //done TODO: CHange to new value
  
 // Y-intercept for the PWM-Linear Velocity relationship for the robot
-const int b = 52;  //TODO: CHange to new value
+const int b = -49.95;  //done TODO: CHange to new value
  
 // Correction multiplier for drift. Chosen through experimentation.
 const int DRIFT_MULTIPLIER = 120; //TODO: CHange to new value
@@ -79,8 +80,8 @@ const int DRIFT_MULTIPLIER = 120; //TODO: CHange to new value
 const int PWM_TURN = 80; //TODO: CHange to new value
  
 // Set maximum and minimum limits for the PWM values
-const int PWM_MIN = 80; // about 0.1 m/s //TODO: CHange to new value
-const int PWM_MAX = 100; // about 0.172 m/s //TODO: CHange to new value
+const int PWM_MIN = 60; // about 0.1 m/s //done TODO: CHange to new value
+const int PWM_MAX = 110; // about 0.172 m/s //done TODO: CHange to new value
  
 // Set linear velocity and PWM variable values for each wheel
 double velLeftWheel = 0;
