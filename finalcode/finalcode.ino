@@ -66,8 +66,8 @@ void setup()
   pinMode(leftENCODER_B , INPUT_PULLUP);
 
   //interrupt attachement
- // attachInterrupt(digitalPinToInterrupt(rightENCODER_A), rightencoderISR, CHANGE);
- // attachInterrupt(digitalPinToInterrupt(leftENCODER_A), leftencoderISR, CHANGE);
+ attachInterrupt(digitalPinToInterrupt(rightENCODER_A), right_wheel_tick, CHANGE);
+ attachInterrupt(digitalPinToInterrupt(leftENCODER_A), left_wheel_tick, CHANGE);
 }
 void loop()
 {
@@ -84,6 +84,28 @@ void loop()
 }
 ///////////////////Function Definition///////////////////////////////
 /////////////////////////ADD ENCODER DIRECTION PLUS TICKS CODE////////////////////
+void right_wheel_tick() {
+  static int prevState = 0;
+  int newState = digitalRead(rightENCODER_A) << 1 | digitalRead(rightENCODER_B);
+  if ((prevState == 0b00 && newState == 0b01) || (prevState == 0b11 && newState == 0b10)) {
+    rightencoderPos++;
+  } else if ((prevState == 0b01 && newState == 0b00) || (prevState == 0b10 && newState == 0b11)) {
+    rightencoderPos;
+  }
+  prevState = newState;
+}
+
+void left_wheel_tick(){
+  static int prevState = 0;
+  int newState = digitalRead(leftENCODER_A ) << 1 | digitalRead(leftENCODER_B);
+  if ((prevState == 0b00 && newState == 0b01) || (prevState == 0b11 && newState == 0b10)){
+        leftencoderPos++;
+  } else if ((prevState == 0b01 && newState == 0b00) || (prevState == 0b10 && newState == 0b11)){
+    leftencoderPos--;
+  }
+  prevState = newState;
+}
+
 //vel of robot on run time
 //calculate vel for right motor
 float cal_vel_A(volatile int ticks, unsigned long milliseconds)
