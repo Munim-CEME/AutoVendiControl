@@ -7,13 +7,16 @@ ros::NodeHandle nh;
 ////////////////// Tick Data Publishing Variables and Constants ///////////////
  
 // Encoder output to Arduino Interrupt pin. Tracks the tick count.
-#define ENC_IN_LEFT_A 2
-#define ENC_IN_RIGHT_A 18
+#define ENC_IN_LEFT_A 18
+#define ENC_IN_LEFT_B 19
+
+#define ENC_IN_RIGHT_A 2
+#define ENC_IN_RIGHT_B 3
  
 // Other encoder output to Arduino to keep track of wheel direction
 // Tracks the direction of rotation.
-#define ENC_IN_LEFT_B 3
-#define ENC_IN_RIGHT_B 19
+
+
  
 // True = Forward; False = Reverse
 boolean Direction_left = true;
@@ -39,14 +42,24 @@ long currentMillis = 0;
 ////////////////// Motor Controller Variables and Constants ///////////////////
  
 // Motor A connections // TODO: Change BTS7960 convention with sense of L or R motor
-const int enA = 9;
-const int in1 = 5;
-const int in2 = 6;
+// const int enA = 9;
+// const int in1 = 5;
+// const int in2 = 6;
+int rightRPWM = 5;  
+int rightLPWM = 6;
+int rightRPWM_EN = 7;  
+int rightLPWM_EN = 8;
+int EN_right = rightLPWM; // integer for subsituting rpwm and lpwm
   
 // Motor B connections //TODO: Change BTS7960 convention with sense of L or R motor
-const int enB = 10; 
-const int in3 = 9;
-const int in4 = 10;
+// const int enB = 10; 
+// const int in3 = 9;
+// const int in4 = 10;
+int leftRPWM = 10;  
+int leftLPWM = 11;
+int leftRPWM_EN = 7;  
+int leftLPWM_EN = 8;
+int EN_left = leftLPWM;
  
 // How much the PWM value can change each cycle
 const int PWM_INCREMENT = 1;
@@ -97,16 +110,30 @@ ros::Subscriber<geometry_msgs::Twist> subCmdVel("cmd_vel", &calc_pwm_values );
  
 // Increment the number of ticks
 void right_wheel_tick() {
-   
+  static int prevState = 0;
+  int newState = digitalRead(ENC_IN_RIGHT_A) << 1 | digitalRead(ENC_IN_RIGHT_B);
+  if ((prevState == 0b00 && newState == 0b01) || (prevState == 0b11 && newState == 0b10)) {
+    rightencoderPos++;
+  } else if ((prevState == 0b01 && newState == 0b00) || (prevState == 0b10 && newState == 0b11)) {
+    rightencoderPos;
+  }
+  prevState = newState;  
   
-      right_wheel_tick_count.data++;  
+      
    
 }
  
 // Increment the number of ticks
 void left_wheel_tick() {
-   
-      left_wheel_tick_count.data++;  
+  static int prevState = 0;
+  int newState = digitalRead(ENC_IN_LEFT_A ) << 1 | digitalRead(ENC_IN_LEFT_B);
+  if ((prevState == 0b00 && newState == 0b01) || (prevState == 0b11 && newState == 0b10)){
+        leftencoderPos++;
+  } else if ((prevState == 0b01 && newState == 0b00) || (prevState == 0b10 && newState == 0b11)){
+    leftencoderPos--;
+  }
+  prevState = newState;  
+      
  
 }
 
@@ -114,7 +141,7 @@ void left_wheel_tick() {
  
 // Calculate the left wheel linear velocity in m/s every time a 
 // tick count message is rpublished on the /left_ticks topic. 
-/*void calc_vel_left_wheel(){
+void calc_vel_left_wheel(){
    
   // Previous timestamp
   static double prevTime = 0;
@@ -139,11 +166,11 @@ void left_wheel_tick() {
   // Update the timestamp
   prevTime = (millis()/1000);
  
-}*/
+}
  
 // Calculate the right wheel linear velocity in m/s every time a 
 // tick count message is published on the /right_ticks topic. 
-/*void calc_vel_right_wheel(){
+void calc_vel_right_wheel(){
    
   // Previous timestamp
   static double prevTime = 0;
@@ -165,7 +192,7 @@ void left_wheel_tick() {
    
   prevTime = (millis()/1000);
  
-}*/
+}
  
 // Take the velocity command as input and calculate the PWM values.
 void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
@@ -180,7 +207,7 @@ void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
   Serial.println(angular_z);
 }
  
-/*void set_pwm_values() {
+void set_pwm_values() {
  
   // These variables will hold our desired PWM values
   static int pwmLeftOut = 0;
@@ -197,37 +224,57 @@ void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
  
   // Set the direction of the motors
   if (pwmLeftReq > 0) { // Left wheel forward
-    digitalWrite(in1, HIGH);
-    digitalWrite(in2, LOW);
+     digitalWrite(leftLPWM_EN, HIGH);
+     digitalWrite(leftRPWM_EN, LOW);
+     EN_left = leftLPWM;
+
+
   }
   else if (pwmLeftReq < 0) { // Left wheel reverse
-    digitalWrite(in1, LOW);
-    digitalWrite(in2, HIGH);
+    // digitalWrite(in1, LOW);
+    // digitalWrite(in2, HIGH);
+    digitalWrite(leftLPWM_EN, LOW);
+    digitalWrite(leftRPWM_EN, HIGH);
+    EN_left = leftRPWM;
   }
   else if (pwmLeftReq == 0 && pwmLeftOut == 0 ) { // Left wheel stop
-    digitalWrite(in1, LOW);
-    digitalWrite(in2, LOW);
+    // digitalWrite(in1, LOW);
+    // digitalWrite(in2, LOW);
+    digitalWrite(leftLPWM_EN, LOW);
+    digitalWrite(leftRPWM_EN, LOW);
   }
   else { // Left wheel stop
-    digitalWrite(in1, LOW);
-    digitalWrite(in2, LOW); 
+    // digitalWrite(in1, LOW);
+    // digitalWrite(in2, LOW); 
+    digitalWrite(leftLPWM_EN, LOW);
+    digitalWrite(leftRPWM_EN, LOW);
   }
  
   if (pwmRightReq > 0) { // Right wheel forward
-    digitalWrite(in3, HIGH);
-    digitalWrite(in4, LOW);
+    // digitalWrite(in3, HIGH);
+    // digitalWrite(in4, LOW);
+     digitalWrite(rightLPWM_EN, HIGH);
+     digitalWrite(rightRPWM_EN, LOW);
+     EN_right = rightLPWM;
   }
   else if(pwmRightReq < 0) { // Right wheel reverse
-    digitalWrite(in3, LOW);
-    digitalWrite(in4, HIGH);
+    // digitalWrite(in3, LOW);
+    // digitalWrite(in4, HIGH);
+    digitalWrite(rightLPWM_EN, LOW);
+    digitalWrite(rightRPWM_EN, HIGH);
+    EN_right = rightRPWM;
   }
   else if (pwmRightReq == 0 && pwmRightOut == 0) { // Right wheel stop
-    digitalWrite(in3, LOW);
-    digitalWrite(in4, LOW);
+    // digitalWrite(in3, LOW);
+    // digitalWrite(in4, LOW);
+    digitalWrite(rightLPWM_EN, LOW);
+    digitalWrite(rightRPWM_EN, LOW);
   }
   else { // Right wheel stop
-    digitalWrite(in3, LOW);
-    digitalWrite(in4, LOW); 
+    // digitalWrite(in3, LOW);
+    // digitalWrite(in4, LOW);
+    digitalWrite(rightLPWM_EN, LOW);
+    digitalWrite(rightRPWM_EN, LOW); 
   }
  
   // Increase the required PWM if the robot is not moving
@@ -264,9 +311,9 @@ void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
   pwmRightOut = (pwmRightOut < 0) ? 0 : pwmRightOut;
  
   // Set the PWM value on the pins
-  analogWrite(enA, pwmLeftOut); 
-  analogWrite(enB, pwmRightOut); 
-}*/
+  analogWrite(EN_left, pwmLeftOut); 
+  analogWrite(EN_right, pwmRightOut); 
+}
  
 // Set up ROS subscriber to the velocity command
 
@@ -285,22 +332,24 @@ void setup() {
   attachInterrupt(18, right_wheel_tick, RISING);
    
   // Motor control pins are outputs
-  pinMode(enA, OUTPUT);
-  pinMode(enB, OUTPUT);
-  pinMode(in1, OUTPUT);
-  pinMode(in2, OUTPUT);
-  pinMode(in3, OUTPUT);
-  pinMode(in4, OUTPUT);
+  pinMode(leftLPWM, OUTPUT);
+  pinMode(leftRPWM, OUTPUT);
+  pinMode(rightLPWM, OUTPUT);
+  pinMode(rightRPWM, OUTPUT);
+  pinMode(leftLPWM_EN, OUTPUT);
+  pinMode(leftRPWM_EN, OUTPUT);
+  pinMode(rightLPWM_EN, OUTPUT);
+  pinMode(rightRPWM_EN, OUTPUT);
   
   // Turn off motors - Initial state
-  digitalWrite(in1, LOW);
-  digitalWrite(in2, LOW);
-  digitalWrite(in3, LOW);
-  digitalWrite(in4, LOW);
+  digitalWrite(leftLPWM_EN, LOW);
+  digitalWrite(leftRPWM_EN, LOW);
+  digitalWrite(rightLPWM_EN, LOW);
+  digitalWrite(rightRPWM_EN, LOW);
   
   // Set the motor speed
-  analogWrite(enA, 0); 
-  analogWrite(enB, 0);
+  analogWrite(EN_left, 0); 
+  analogWrite(EN_right, 0);
  
   // ROS Setup
   nh.getHardware()->setBaud(115200);
@@ -330,16 +379,16 @@ void loop() {
    
  
     // Calculate the velocity of the right and left wheels
-   // calc_vel_right_wheel();
-    //calc_vel_left_wheel();
+   calc_vel_right_wheel();
+   calc_vel_left_wheel();
      
   }
 
   // Stop the car if there are no cmd_vel messages
-  //if((millis()/1000) - lastCmdVelReceived > 1) {
-   // pwmLeftReq = 0;
-    //pwmRightReq = 0;
-  //}
+  if((millis()/1000) - lastCmdVelReceived > 1) {
+   pwmLeftReq = 0;
+    pwmRightReq = 0;
+  }
  
-  //set_pwm_values();
+  set_pwm_values();
 }
