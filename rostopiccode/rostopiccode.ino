@@ -7,11 +7,12 @@ ros::NodeHandle nh;
 ////////////////// Tick Data Publishing Variables and Constants ///////////////
  
 // Encoder output to Arduino Interrupt pin. Tracks the tick count.
-#define ENC_IN_LEFT_A 2
-#define ENC_IN_LEFT_B 3
+#define leftENCODER_A 18
+#define leftENCODER_B 19
 
-#define ENC_IN_RIGHT_A 18
-#define ENC_IN_RIGHT_B 19
+
+#define rightENCODER_A 2
+#define rightENCODER_B 3
  
 // Other encoder output to Arduino to keep track of wheel direction
 // Tracks the direction of rotation.
@@ -109,36 +110,113 @@ ros::Subscriber<geometry_msgs::Twist> subCmdVel("cmd_vel", &calc_pwm_values );
 /////////////////////// Tick Data Publishing Functions ////////////////////////
  
 // Increment the number of ticks
-void right_wheel_tick() {
-  static int prevState = 0;
-  int newState = digitalRead(ENC_IN_RIGHT_A) << 1 | digitalRead(ENC_IN_RIGHT_B);
-  if ((prevState == 0b00 && newState == 0b01) || (prevState == 0b11 && newState == 0b10)) {
-    rightencoderPos++;
-  } else if ((prevState == 0b01 && newState == 0b00) || (prevState == 0b10 && newState == 0b11)) {
-    rightencoderPos;
-  }
-  prevState = newState;  
-  
-      
-   
-}
- 
-// Increment the number of ticks
-void left_wheel_tick() {
-  static int prevState = 0;
-  int newState = digitalRead(ENC_IN_LEFT_A ) << 1 | digitalRead(ENC_IN_LEFT_B);
-  if ((prevState == 0b00 && newState == 0b01) || (prevState == 0b11 && newState == 0b10)){
-        leftencoderPos++;
-  } else if ((prevState == 0b01 && newState == 0b00) || (prevState == 0b10 && newState == 0b11)){
-    leftencoderPos--;
-  }
-  prevState = newState;  
-      
- 
-}
+
 
 /////////////////////// Motor Controller Functions ////////////////////////////
- 
+ void doencoderA()
+{
+ if (digitalRead(rightENCODER_A) == HIGH)
+ {
+  if(digitalRead(rightENCODER_B) == LOW)
+  {
+    right_wheel_tick_count.data++;
+  }
+  else
+  {
+    right_wheel_tick_count.data--;
+  }
+ }
+ else
+ {
+  if(digitalRead(rightENCODER_B) == HIGH)
+  {
+    right_wheel_tick_count.data++;
+  }
+  else
+  {
+    right_wheel_tick_count.data--;
+  }
+ }
+}
+
+void doencoderB()
+{
+ if (digitalRead(rightENCODER_B) == HIGH)
+ {
+  if(digitalRead(rightENCODER_A) == HIGH)
+  {
+    right_wheel_tick_count.data++;
+  }
+  else
+  {
+    right_wheel_tick_count.data--;
+  }
+ }
+ else
+ {
+  if(digitalRead(rightENCODER_A) == LOW)
+  {
+    right_wheel_tick_count.data++;
+  }
+  else
+  {
+    right_wheel_tick_count.data--;
+  }
+ }
+}
+
+void doencoderC()
+{
+ if (digitalRead(leftENCODER_A) == HIGH)
+ {
+  if(digitalRead(leftENCODER_B) == LOW)
+  {
+    left_wheel_tick_count.data--;
+  }
+  else
+  {
+    left_wheel_tick_count.data++;
+  }
+ }
+ else
+ {
+  if(digitalRead(leftENCODER_B) == HIGH)
+  {
+    left_wheel_tick_count.data--;
+  }
+  else
+  {
+    left_wheel_tick_count.data++;
+  }
+ }
+}
+
+void doencoderD()
+{
+ if (digitalRead(leftENCODER_B) == HIGH)
+ {
+  if(digitalRead(leftENCODER_A) == HIGH)
+  {
+    left_wheel_tick_count.data--;
+  }
+  else
+  {
+    left_wheel_tick_count.data++;
+  }
+ }
+ else
+ {
+  if(digitalRead(leftENCODER_A) == LOW)
+  {
+    left_wheel_tick_count.data--;
+  }
+  else
+  {
+    left_wheel_tick_count.data++;
+  }
+ }
+}
+
 // Calculate the left wheel linear velocity in m/s every time a 
 // tick count message is rpublished on the /left_ticks topic. 
 void calc_vel_left_wheel(){
@@ -322,14 +400,18 @@ void setup() {
  
   Serial.begin(115200);
   // Set pin states of the encoder
-  pinMode(ENC_IN_LEFT_A , INPUT_PULLUP);
-  pinMode(ENC_IN_LEFT_B , INPUT);
-  pinMode(ENC_IN_RIGHT_A , INPUT_PULLUP);
-  pinMode(ENC_IN_RIGHT_B , INPUT);
- 
+  
+  pinMode(leftENCODER_A, INPUT_PULLUP);
+  pinMode(leftENCODER_B, INPUT_PULLUP);
+  pinMode(rightENCODER_A, INPUT_PULLUP);
+  pinMode(rightENCODER_B, INPUT_PULLUP);
   // Every time the pin goes high, this is a tick
-  attachInterrupt(2, left_wheel_tick, RISING);
-  attachInterrupt(18, right_wheel_tick, RISING);
+  
+  // Attach interrupts to the encoder pins (rising edge)
+  attachInterrupt(2, doencoderA, CHANGE);
+  attachInterrupt(3, doencoderB, CHANGE);
+  attachInterrupt(18, doencoderC, CHANGE);
+  attachInterrupt(19, doencoderD, CHANGE);
    
   // Motor control pins are outputs
   pinMode(leftLPWM, OUTPUT);
