@@ -7,12 +7,12 @@ int leftRPWM = 10;  // Digital/PWM pin 10 to the RPWM on the BTS7960
 int leftLPWM = 11;  // Digital/PWM pin 11 to the LPWM on the BTS7960
 
 
-#define leftENCODER_A 18
-#define leftENCODER_B 19
+#define leftENCODER_A 2
+#define leftENCODER_B 3
 
 
-#define rightENCODER_A 2
-#define rightENCODER_B 3
+#define rightENCODER_A 18
+#define rightENCODER_B 19
 
 volatile int pulseCountA = 0;
 volatile int pulseCountB = 0;

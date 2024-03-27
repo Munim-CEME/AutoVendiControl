@@ -7,11 +7,11 @@ ros::NodeHandle nh;
 ////////////////// Tick Data Publishing Variables and Constants ///////////////
  
 // Encoder output to Arduino Interrupt pin. Tracks the tick count.
-#define ENC_IN_LEFT_A 18
-#define ENC_IN_LEFT_B 19
+#define ENC_IN_LEFT_A 2
+#define ENC_IN_LEFT_B 3
 
-#define ENC_IN_RIGHT_A 2
-#define ENC_IN_RIGHT_B 3
+#define ENC_IN_RIGHT_A 18
+#define ENC_IN_RIGHT_B 19
  
 // Other encoder output to Arduino to keep track of wheel direction
 // Tracks the direction of rotation.
