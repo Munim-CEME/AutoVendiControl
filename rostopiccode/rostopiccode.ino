@@ -76,8 +76,8 @@ const double WHEEL_BASE = 0.558; //done todo: Measure wheel base
  
 // Number of ticks a wheel makes moving a linear distance of 1 meter
 // This value was measured manually.
-const double TICKS_PER_METER_A = 387; // done today
-const double TICKS_PER_METER_B = 369;
+const double TICKS_PER_METER_A = 774; // done today
+const double TICKS_PER_METER_B = 738;
 
 // Proportional constant, which was measured by measuring the 
 // PWM-Linear Velocity relationship for the robot.
@@ -90,7 +90,7 @@ const int b = -49.95;  //done TODO: CHange to new value
 const int DRIFT_MULTIPLIER = 120; //TODO: CHange to new value
  
 // Turning PWM output (0 = min, 255 = max for PWM values)
-const int PWM_TURN = 80; //TODO: CHange to new value
+const int PWM_TURN = 70; //TODO: CHange to new value
  
 // Set maximum and minimum limits for the PWM values
 const int PWM_MIN = 60; // about 0.1 m/s //done TODO: CHange to new value
@@ -283,6 +283,49 @@ void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
   Serial.print(linear_x);
   Serial.print(", Angular Velocity (z): ");
   Serial.println(angular_z);
+  // Calculate the PWM value given the desired velocity 
+  pwmLeftReq = K_P * cmdVel.linear.x + b;
+  pwmRightReq = K_P * cmdVel.linear.x + b;
+ 
+  // Check if we need to turn 
+  if (cmdVel.angular.z != 0.0) {
+ 
+    // Turn left
+    if (cmdVel.angular.z > 0.0) {
+      pwmLeftReq = -PWM_TURN;
+      pwmRightReq = PWM_TURN;
+    }
+    // Turn right    
+    else {
+      pwmLeftReq = PWM_TURN;
+      pwmRightReq = -PWM_TURN;
+    }
+  }
+  // Go straight
+  else {
+     
+    // Remove any differences in wheel velocities 
+    // to make sure the robot goes straight
+    static double prevDiff = 0;
+    static double prevPrevDiff = 0;
+    double currDifference = velLeftWheel - velRightWheel; 
+    double avgDifference = (prevDiff+prevPrevDiff+currDifference)/3;
+    prevPrevDiff = prevDiff;
+    prevDiff = currDifference;
+ 
+    // Correct PWM values of both wheels to make the vehicle go straight
+    pwmLeftReq -= (int)(avgDifference * DRIFT_MULTIPLIER);
+    pwmRightReq += (int)(avgDifference * DRIFT_MULTIPLIER);
+  }
+ 
+  // Handle low PWM values
+  if (abs(pwmLeftReq) < PWM_MIN) {
+    pwmLeftReq = 0;
+  }
+  if (abs(pwmRightReq) < PWM_MIN) {
+    pwmRightReq = 0;  
+  } 
+  
 }
  
 void set_pwm_values() {
@@ -468,7 +511,7 @@ void loop() {
 
   // Stop the car if there are no cmd_vel messages
   if((millis()/1000) - lastCmdVelReceived > 1) {
-   pwmLeftReq = 0;
+    pwmLeftReq = 0;
     pwmRightReq = 0;
   }
  
