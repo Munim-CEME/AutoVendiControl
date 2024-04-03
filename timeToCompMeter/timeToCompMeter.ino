@@ -15,7 +15,7 @@ int leftLPWM = 11;  // Digital/PWM pin 10 to the LPWM on the BTS7960
 // #define leftENCODER_B 19  
 
 #define rightENCODER_A 2
-#define leftENCODER_A 3
+#define leftENCODER_A 18
 
 //////ticks per meter determin experimentally
 int totalticks1 = 387;
@@ -43,7 +43,7 @@ void setup() {
   // Attach interrupts to the encoder pins (rising edge)
   attachInterrupt(digitalPinToInterrupt(rightENCODER_A), countPulseA, RISING);
   attachInterrupt(digitalPinToInterrupt(leftENCODER_A), countPulseB, RISING);
-  delay(3000);
+  delay(5000);
 
 }
 
@@ -53,23 +53,25 @@ void loop()
   Serial.print(pulseCountA);
   Serial.print(",");
   Serial.println(pulseCountB);
+  Serial.println(pulseCountA-pulseCountB);
   delay(10);
   
   //measure the time when it will complete the total ticks
- currentMillis = millis();
-  if(currentMillis - previousMillis >=10)
-  {
-    previousMillis = currentMillis;
-    if (pulseCountA >= totalticks1 && pulseCountB >= totalticks2)
-    {
-      stop();
-    }
-    else
-    {
-      start();
-    }
-    Serial.println(previousMillis);
-  }
+//  currentMillis = millis();
+//   if(currentMillis - previousMillis >=10)
+//   {
+//     previousMillis = currentMillis;
+//     if (pulseCountA >= totalticks1 && pulseCountB >= totalticks2)
+//     {
+//       stop();
+//     }
+//     else
+//     {
+//       start();
+//     }
+//     Serial.println(previousMillis);
+//   }
+  start();
   /*if(Serial.available()>0)
   {
     char c= Serial.read();
@@ -93,8 +95,8 @@ void countPulseB()
 //forward movement
 void start()
 {
-   analogWrite(rightLPWM, 90);
-   analogWrite(leftLPWM, 90);
+   analogWrite(rightLPWM, 80);
+   analogWrite(leftLPWM, 80);
    
 }
 //will stop 
